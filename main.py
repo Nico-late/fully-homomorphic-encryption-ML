@@ -1,4 +1,4 @@
-from Q_int_class import Q_int_class
+from Q_class import Q_class
 import numpy as np
 
 Q = 2**20
@@ -8,7 +8,7 @@ Q = 2**20
 X_1 = Q * np.array([0,1,0,1])
 X_2 = Q * np.array([0,0,1,1])
 
-test = Q_int_class(Q)
+test = Q_class(Q,input_type='int')
 
 for i in range(X_1.shape[0]):
     print('Input : {} and {}'.format(X_1[i],X_2[i]))
