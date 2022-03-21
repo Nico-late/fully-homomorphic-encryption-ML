@@ -2,7 +2,7 @@ from mlp_integers import MLP
 import  os.path
 from create_datasets import create_dataset_Q_int
 
-class Q_class(object):
+class Q_int_class(object):
     def __init__(self, Q):
         self.mlp = {}
         self.operations=['AND','XOR','OR']
