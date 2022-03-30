@@ -7,7 +7,6 @@
 """
 
 import numpy as np
-from paillier import get_paillier_keys,paillier_encrypt,get_r
 
 def apply_operation(x1,x2,operation):
     if operation == 'AND':
@@ -48,24 +47,6 @@ def create_dataset_Q_float(Q, dataset_size=10000,operation='XOR',validation_spli
 
     data = Q * np.array([(np.array([x_1, x_2]).reshape(2, 1)) for x_1, x_2 in zip(X_1, X_2)])
     labels = Q * np.array([np.array(apply_operation(round(x_1),round(x_2),operation)).reshape(2, 1) for x_1, x_2 in zip(X_1, X_2)])
-    if validation_split!=0:
-        split = int(dataset_size*validation_split)
-        return data[:split],labels[:split],data[split:],labels[split:]
-    return data,labels
-
-def create_dataset_paillier_int(Q, key_size=64, dataset_size=10000,operation='XOR',validation_split=0):
-
-    if type(validation_split) not in [float,int] or validation_split<0 or validation_split>1:
-        raise ValueError('Validation_split has to be a float between 0 and 1.')
-    
-    X_1 = np.random.randint(2, size=dataset_size)
-    X_2 = np.random.randint(2, size=dataset_size)
-
-    pub_key,_ = get_paillier_keys(key_size)
-    r = get_r(pub_key)
-
-    data = np.array([(np.array([paillier_encrypt(int(x_1*Q),pub_key,r), paillier_encrypt(int(x_2*Q),pub_key,r)]).reshape(2, 1)) for x_1, x_2 in zip(X_1, X_2)])
-    labels = Q * np.array([np.array(apply_operation(x_1,x_2,operation)).reshape(2, 1) for x_1, x_2 in zip(X_1, X_2)])
     if validation_split!=0:
         split = int(dataset_size*validation_split)
         return data[:split],labels[:split],data[split:],labels[split:]

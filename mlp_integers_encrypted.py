@@ -1,9 +1,12 @@
+from re import M
 import numpy as np
 from copy import deepcopy
 from tqdm import tqdm
 import pickle
+from Encrypted_Variable import Encrypted_Variable
+from phe import paillier
 
-class MLP(object):
+class MLP_encrypted(object):
     def __init__(self, layers=[2, 10, 2], activations=['relu', 'linear'], Q=2**20):
         """"""
         assert (len(layers) == len(activations) + 1)
@@ -18,6 +21,8 @@ class MLP(object):
             self.biases.append(np.random.normal(0, int(self.Q*np.sqrt(2 / layers[i])), size=(layers[i + 1], 1)
                                                 ).astype(int))
 
+        self.public_key, self.private_key = paillier.generate_paillier_keypair()
+        self.model_encryption()
 
     def feedforward(self, x):
         """ return the feedforward value for x """
@@ -106,26 +111,29 @@ class MLP(object):
         # return the derivatives respect to weight matrix and biases
         return db, dw
 
-    @staticmethod
-    def get_activation_function(name):
+    def get_activation_function(self, name):
         if name == 'sigmoid':
             return lambda x: np.exp(x) / (1 + np.exp(x))
         elif name == 'linear':
             return lambda x: x
         elif name == 'relu':
             def relu(x):
-                y = np.copy(x)
-                print(type(y))
+                y = []
+                for i in range(len(x)):
+                    y.append(self.private_key.decrypt(x[i][0].data))
+                y = np.array(y)
                 y[y < 0] = 0
-                return y
-
+                output=[]
+                for i in range(len(y)):
+                    output.append(Encrypted_Variable(int(y[i]), self.public_key, self.private_key))
+                output = np.expand_dims(np.array(output),1)
+                return output
             return relu
         else:
             print('Unknown activation function. linear is used')
             return lambda x: x
 
-    @staticmethod
-    def get_derivative_activation_function(name):
+    def get_derivative_activation_function(self, name):
         if name == 'sigmoid':
             sig = lambda x: np.exp(x) / (1 + np.exp(x))
             return lambda x: sig(x) * (1 - sig(x))
@@ -133,11 +141,17 @@ class MLP(object):
             return lambda x: 1
         elif name == 'relu':
             def relu_diff(x):
-                y = np.copy(x)
+                y = []
+                for i in range(len(x)):
+                    y.append(self.private_key.decrypt(x[i][0].data))
+                y = np.array(y)
                 y[y >= 0] = 1
                 y[y < 0] = 0
-                return y
-
+                output=[]
+                for i in range(len(y)):
+                    output.append(Encrypted_Variable(int(y[i]), self.public_key, self.private_key))
+                output = np.expand_dims(np.array(output),1)
+                return output
             return relu_diff
         else:
             print('Unknown activation function. linear is used')
@@ -161,8 +175,25 @@ class MLP(object):
 
     def save_weights(self, full_path):
         with open(full_path, 'wb') as f:
-            pickle.dump((self.weights,self.biases), f)
+            pickle.dump((self.weights, self.biases, self.public_key, self.private_key), f)
 
     def load_weights(self, full_path):
         with open(full_path, 'rb') as f:
-            self.weights,self.biases = pickle.load(f)
+            self.weights, self.biases, self.public_key, self.private_key = pickle.load(f)
+
+    def model_encryption(self):
+        encrypted_attribute=[]
+        for attribute_layer in self.weights:
+            encrypted_layer=[]
+            for line in attribute_layer:
+                encrypted_layer.append(np.array([Encrypted_Variable(int(l),self.public_key,self.private_key)for l in line]))
+            encrypted_attribute.append(np.array(encrypted_layer))
+        self.weights = encrypted_attribute
+
+        encrypted_attribute=[]
+        for attribute_layer in self.biases:
+            encrypted_layer=[]
+            for line in attribute_layer:
+                encrypted_layer.append(np.array([Encrypted_Variable(int(l),self.public_key,self.private_key)for l in line]))
+            encrypted_attribute.append(np.array(encrypted_layer))
+        self.biases = encrypted_attribute
