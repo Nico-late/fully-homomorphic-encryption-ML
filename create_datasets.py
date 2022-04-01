@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-  @Author: nico-late 
-  @Date: 2022-01-03 15:48:15
-  @Last Modified by:   nico-late 
-  @Last Modified time: 2022-01-03 15:48:15
+This file defines all the function used to automatically generate the datasets used in the MLPs
 """
 
 import numpy as np
@@ -21,7 +17,7 @@ def apply_operation(x1,x2,operation):
     return [operation_value, 1 - operation_value]
 
 def create_dataset_Q_int(Q, dataset_size=10000,operation='XOR',validation_split=0):
-
+    
     if type(validation_split) not in [float,int] or validation_split<0 or validation_split>1:
         raise ValueError('Validation_split has to be a float between 0 and 1.')
     

@@ -1,4 +1,8 @@
-from phe import paillier
+"""
+This file contains the implementation of the Encrypted Variable used to encrypt
+the weights and biases of the MLP_encrypted object defined in mlp_integers_encrypted.py
+"""
+
 import numpy as np
 
 class Encrypted_Variable(object):
@@ -11,19 +15,21 @@ class Encrypted_Variable(object):
             self.data = data
     
     def __add__(self, other):
-        if isinstance(other, (float, int, paillier.EncryptedNumber)):
+        if isinstance(other, (float, int)):
             return Encrypted_Variable(self.data + other, self.pub_key, self.priv_key)
         else:
-            return Encrypted_Variable(self.data + other.data, self.pub_key, self.priv_key)
+            x = self.priv_key.decrypt(other.data)
+            return Encrypted_Variable(self.data + x, self.pub_key, self.priv_key)
     
     def __radd__(self, other):
         return self.__add__(other)
 
     def __sub__(self, other):
-        if isinstance(other, (float, int, paillier.EncryptedNumber)):
+        if isinstance(other, (float, int)):
             return Encrypted_Variable(self.data - other, self.pub_key, self.priv_key)
         else:
-            return Encrypted_Variable(self.data - other.data, self.pub_key, self.priv_key)
+            x = self.priv_key.decrypt(other.data)
+            return Encrypted_Variable(self.data - x, self.pub_key, self.priv_key)
 
     def __rsub__(self, other):
         return self.__sub__(other)
@@ -39,7 +45,7 @@ class Encrypted_Variable(object):
         return self.__mul__(other)
         
     def __truediv__(self, other):
-        r = np.random.randint(2**20)
+        r = np.random.randint(64)
         if isinstance(other, (float, int)):
             x=other
         else:
@@ -48,7 +54,7 @@ class Encrypted_Variable(object):
             raise ZeroDivisionError('Division by zero !')
         y = self.priv_key.decrypt(self.data)
         y = y + r
-        y = y // x - r // x
+        y = y // other - r // other
         return Encrypted_Variable(y, self.pub_key, self.priv_key)
 
     def __floordiv__(self, other):
@@ -56,7 +62,7 @@ class Encrypted_Variable(object):
 
     def __str__(self):
         x = self.priv_key.decrypt(self.data)
-        return 'val({0}, clear = {1})'.format(self.data, x)
+        return 'encrypted_data={}, decrypted_data= {}'.format(self.data, x)
     
     def __repr__(self):
         return 'Encrypted_Variable' + str(self)

@@ -1,3 +1,7 @@
+"""
+In this file we define the Q_class object, which uses MLP_integers objects to compute operations
+"""
+
 from mlp_integers import MLP
 import  os.path
 from create_datasets import create_dataset_Q_int,create_dataset_Q_float

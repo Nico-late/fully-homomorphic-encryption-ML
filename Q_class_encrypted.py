@@ -1,3 +1,8 @@
+"""
+In this file we define the Q_class_encrypted object, which uses MLP_integers_encrypted objects 
+to compute operations
+"""
+
 from mlp_integers_encrypted import MLP_encrypted
 import  os.path
 from create_datasets import create_dataset_Q_int,create_dataset_Q_float
@@ -30,9 +35,9 @@ class Q_class_encrypted(object):
                 print('##### Model does not exist for operation {} #####'.format(operation))
                 print('##### Training of this model #####')
                 if input_type=='int':
-                    tr_x,tr_y,val_x,val_y = create_dataset_Q_int(Q,1000,operation,validation_split=0.9)
+                    tr_x,tr_y,val_x,val_y = create_dataset_Q_int(Q,100,operation,validation_split=0.9)
                 elif input_type=='float':
-                    tr_x,tr_y,val_x,val_y = create_dataset_Q_float(Q,1000,operation,validation_split=0.9)
+                    tr_x,tr_y,val_x,val_y = create_dataset_Q_float(Q,100,operation,validation_split=0.9)
                 self.mlp[operation].train(tr_x, tr_y, val_x, val_y, epochs=100, batch_size=32, lr=100, decay_steps=10)
                 self.mlp[operation].save_weights(path)
 

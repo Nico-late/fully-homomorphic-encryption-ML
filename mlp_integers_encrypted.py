@@ -1,4 +1,8 @@
-from re import M
+"""
+In this file we define the encrypted MLP with weights and biases defined as integers
+but also encrypted as Encrypted_variable
+"""
+
 import numpy as np
 from copy import deepcopy
 from tqdm import tqdm
@@ -7,7 +11,7 @@ from Encrypted_Variable import Encrypted_Variable
 from phe import paillier
 
 class MLP_encrypted(object):
-    def __init__(self, layers=[2, 10, 2], activations=['relu', 'linear'], Q=2**20):
+    def __init__(self, layers=[2, 10, 2], activations=['relu', 'linear'], Q=64):
         """"""
         assert (len(layers) == len(activations) + 1)
         self.Q = Q
@@ -169,7 +173,12 @@ class MLP_encrypted(object):
         for i in range(X.shape[0]):
             x = X[i]
             _, a_s = self.feedforward(x)
-            ind = np.argmax(a_s[-1])
+            preds = a_s[-1]
+            preds_decrypted=[]
+            for j in range(len(preds)):
+                preds_decrypted.append(self.private_key.decrypt(preds[j][0].data))
+            preds_decrypted = np.array(preds_decrypted)
+            ind = np.argmax(preds_decrypted)
             predict[i,ind] = [self.Q]
         return predict
 

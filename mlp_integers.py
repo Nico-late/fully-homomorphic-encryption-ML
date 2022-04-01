@@ -1,3 +1,7 @@
+"""
+In this file we define the basic MLP with weights and biases defined as integers
+"""
+
 import numpy as np
 from copy import deepcopy
 from tqdm import tqdm
@@ -115,7 +119,6 @@ class MLP(object):
         elif name == 'relu':
             def relu(x):
                 y = np.copy(x)
-                print(type(y))
                 y[y < 0] = 0
                 return y
 
